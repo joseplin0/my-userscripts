@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Linux Do 24小时点赞统计 (安全版)
+// @name         Linux Do 24小时点赞统计
 // @namespace    https://github.com/joseplin0/my-userscripts
-// @version      1.1
+// @version      1.1.1
 // @description  纯前端高性能监听 Linux Do 上的点赞操作，并在右下角显示过去24小时内的点赞数量
 // @author       joseplin0
 // @author       Code assisted by Google Gemini
