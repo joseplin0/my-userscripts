@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Linux Do 24小时点赞统计
 // @namespace    https://github.com/joseplin0/my-userscripts
-// @version      1.1.1
+// @version      1.1.2
 // @description  纯前端高性能监听 Linux Do 上的点赞操作，并在右下角显示过去24小时内的点赞数量
 // @author       joseplin0
 // @author       Code assisted by Google Gemini
@@ -23,7 +23,6 @@
 
     // UI 元素
     let countDisplayEl = null;
-    let lastClickTime = 0;
 
     /**
      * 获取历史记录（时间戳数组）
@@ -47,13 +46,9 @@
      * 记录一次新的点赞
      */
     function recordLike() {
-        // 简单防抖，防止双击造成重复计算
-        const now = Date.now();
-        if (now - lastClickTime < 1000) return;
-        lastClickTime = now;
-
+        // 移除了防抖逻辑，允许连续点赞不同的帖子
         let history = getHistory();
-        history.push(now);
+        history.push(Date.now());
         // 不再清理旧数据，将所有历史记录永久保存到 localStorage
         saveHistory(history);
         updateUI();
@@ -138,6 +133,10 @@
      * 对特定被点击的按钮进行短时监听，等待其变为"移除此赞"
      */
     function watchButtonForSuccess(btn) {
+        // 防止对同一个按钮极速狂点产生多个监听器
+        if (btn.dataset.watching === 'true') return;
+        btn.dataset.watching = 'true';
+
         // 创建一个专用于这个按钮的观察者
         const observer = new MutationObserver((mutations, obs) => {
             for (let mutation of mutations) {
@@ -148,6 +147,7 @@
                     if (newTitle.includes('移除此赞') || newTitle.includes('撤销') || newTitle.toLowerCase().includes('undo')) {
                         recordLike();
                         obs.disconnect(); // 记录成功后立即销毁监听器
+                        delete btn.dataset.watching; // 释放锁
                         clearTimeout(timeoutId); // 清除超时定时器
                     }
                 }
@@ -163,6 +163,7 @@
         // 设置 5 秒超时保护。如果 5 秒内接口没返回或报错导致 title 没变，自动销毁监听器，防止内存泄漏
         const timeoutId = setTimeout(() => {
             observer.disconnect();
+            delete btn.dataset.watching; // 释放锁
         }, 5000);
     }
 
