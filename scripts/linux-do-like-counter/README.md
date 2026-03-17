@@ -1,6 +1,6 @@
-# Linux Do 24小时点赞统计 (Linux Do 24h Like Counter)
+# Linux Do 点赞计数器 (Linux Do Like Counter)
 
-这是一个简单的 Tampermonkey/Violentmonkey 脚本，用来统计你在 [Linux.do](https://linux.do) 论坛里过去 24 小时内的点赞次数。
+统计 [Linux.do](https://linux.do) 今日及过去 24 小时内的点赞次数。
 
 ## ✅ 主要特点
 
@@ -14,7 +14,7 @@
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/) 或 [Violentmonkey](https://violentmonkey.github.io/)。
 2. 安装脚本
 
-- 官方 GreasyFork 版（推荐）：[安装脚本](https://update.greasyfork.org/scripts/569787/Linux-Do-24小时点赞统计.user.js)
+- 官方 GreasyFork 版（推荐）：[安装脚本](https://update.greasyfork.org/scripts/569787/Linux-Do-点赞计数器.user.js)
 - GitHub 源码版： [安装脚本](https://raw.githubusercontent.com/joseplin0/my-userscripts/main/linux-do-like-counter.user.js)
 
 ## 📌 使用方式

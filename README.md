@@ -1,6 +1,6 @@
 # 🐒 My Userscripts (我的油猴脚本合集)
 
-这里收集并维护了我编写的一些实用 Tampermonkey（油猴）脚本。致力于提供轻量、安全、无侵入的网页增强体验。
+这里收集并维护了我编写的一些实用 Tampermonkey（油猴）脚本。
 
 ## 🚀 如何使用
 
@@ -15,7 +15,7 @@
 
 | 脚本名称 | 功能简介 | 版本 | 主页/文档 | 安装链接 |
 | :--- | :--- | :---: | :---: | :---: |
-| **Linux Do 24h点赞统计** | 纯前端高性能监听，统计并在右下角悬浮显示 Linux.do 论坛过去 24 小时内的点赞数。 | v1.0 | [查看详情](./scripts/linux-do-like-counter/README.md) | [📦 安装](https://raw.githubusercontent.com/joseplin0/my-userscripts/main/scripts/linux-do-like-counter/linux-do-like-counter.user.js) |
+| **Linux Do 点赞计数器** | 纯前端高性能监听，统计并在右下角悬浮显示 Linux.do 论坛过去 24 小时内的点赞数。 | v1.0 | [查看详情](./scripts/linux-do-like-counter/README.md) | [📦 安装](https://raw.githubusercontent.com/joseplin0/my-userscripts/main/scripts/linux-do-like-counter/linux-do-like-counter.user.js) |
 | **(未来脚本名称)** | (未来脚本的功能描述) | v1.0 | [查看详情](./scripts/future-script/README.md) | [📦 安装](https://raw.githubusercontent.com/...) |
 
 *(持续更新中...)*
