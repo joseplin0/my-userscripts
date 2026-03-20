@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Linux Do 点赞计数器
 // @namespace    https://github.com/joseplin0/my-userscripts
-// @version      1.2.0
+// @version      1.3.2
 // @description  纯前端高性能监听 Linux Do 上的点赞操作，并在右下角显示今日点赞数量，悬浮展示24小时统计
 // @author       joseplin0
 // @author       Code assisted by Google Gemini
@@ -22,13 +22,28 @@
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
   /**
-   * 获取历史记录（时间戳数组）
+   * 获取历史记录（对象字典）
    */
   function getHistory() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!data) return {};
+
+      // 兼容迁移：如果旧数据是数组格式，将其转换为新的对象格式
+      if (Array.isArray(data)) {
+        const migratedData = {};
+        data.forEach((time, index) => {
+          migratedData["legacy_" + index + "_" + time] = {
+            like: true,
+            time: time,
+          };
+        });
+        saveHistory(migratedData); // 顺手存一下转换后的格式
+        return migratedData;
+      }
+      return data;
     } catch (e) {
-      return [];
+      return {};
     }
   }
 
@@ -47,13 +62,19 @@
   }
 
   /**
-   * 记录一次新的点赞
+   * 记录一次新的点赞成功
    */
-  function recordLike() {
-    // 移除了防抖逻辑，允许连续点赞不同的帖子
+  function recordLikeSuccess(postId) {
     let history = getHistory();
-    history.push(Date.now());
-    // 不再清理旧数据，将所有历史记录永久保存到 localStorage
+
+    // 更新指定 ID 的状态为 true，并刷新时间
+    if (history[postId]) {
+      history[postId].like = true;
+      history[postId].time = Date.now();
+    } else {
+      history[postId] = { like: true, time: Date.now() };
+    }
+
     saveHistory(history);
     updateUI();
 
@@ -164,11 +185,15 @@
     const history = getHistory();
     const now = Date.now();
 
-    // 统计各项数据
-    const count24h = history.filter(
-      (timestamp) => now - timestamp < ONE_DAY_MS,
+    // 只提取状态为成功 (like: true) 的记录进行统计
+    const validLikes = Object.values(history).filter(
+      (item) => item.like === true,
+    );
+
+    const count24h = validLikes.filter(
+      (item) => now - item.time < ONE_DAY_MS,
     ).length;
-    const countToday = history.filter((timestamp) => isToday(timestamp)).length;
+    const countToday = validLikes.filter((item) => isToday(item.time)).length;
 
     // 获取 UI 元素
     const popover = document.getElementById("linux-do-like-popover");
@@ -210,7 +235,7 @@
   /**
    * 对特定被点击的按钮进行短时监听，等待其变为"移除此赞"
    */
-  function watchButtonForSuccess(btn) {
+  function watchButtonForSuccess(btn, postId) {
     // 防止对同一个按钮极速狂点产生多个监听器
     if (btn.dataset.watching === "true") return;
     btn.dataset.watching = "true";
@@ -227,7 +252,7 @@
             newTitle.includes("撤销") ||
             newTitle.toLowerCase().includes("undo")
           ) {
-            recordLike();
+            recordLikeSuccess(postId);
             obs.disconnect(); // 记录成功后立即销毁监听器
             delete btn.dataset.watching; // 释放锁
             clearTimeout(timeoutId); // 清除超时定时器
@@ -253,7 +278,21 @@
   window.addEventListener(
     "click",
     (event) => {
-      // 只筛选出指定的反应按钮
+      // 1. 先尝试从父级容器提取动态的 Post ID (防误点：通过具体的 id 结构匹配)
+      const actionContainer = event.target.closest(
+        'div[id^="discourse-reactions-actions-"]',
+      );
+
+      let postId = null;
+      // 精确匹配并提取数字 ID
+      const match = actionContainer.id.match(
+        /discourse-reactions-actions-(\d+)-right/,
+      );
+      if (match) {
+        postId = match[1];
+      }
+
+      // 2. 筛选出指定的反应按钮
       const btn = event.target.closest(
         "div.discourse-reactions-reaction-button",
       );
@@ -266,7 +305,20 @@
         currentTitle.includes("点赞此帖子") ||
         currentTitle.toLowerCase().includes("like this post")
       ) {
-        watchButtonForSuccess(btn);
+        // 如果未能找到确切的 postId，生成一个带时间戳的随机 ID 兜底
+        const finalPostId =
+          postId ||
+          "unknown_" +
+            Date.now() +
+            "_" +
+            Math.random().toString(36).substring(2, 6);
+
+        // 记录初始点击动作 (like: false)
+        let history = getHistory();
+        history[finalPostId] = { like: false, time: Date.now() };
+        saveHistory(history);
+
+        watchButtonForSuccess(btn, finalPostId);
       }
     },
     true,
